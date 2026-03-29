@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Наурыз Думаны - Интеллектуалды Ойын</title>
+    <style>
+        :root {
+            --primary: #1e4d2b;
+            --secondary: #5d8a66;
+            --accent: #d4af37;
+            --bg: #fdfaf1;
+            --text: #2c3e50;
+            --white: #ffffff;
+            --team1: #2980b9;
+            --team2: #d35400;
+            --danger: #e74c3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            background-image: url('https://ortcom.kz/cache/imagine/main_page_full/uploads/posts/641/9bd/a08/6419bda082506628676932.jpg');
+        }
+
+        #game-container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            overflow: hidden;
+            position: relative;
+            min-height: 750px;
+            border: 1px solid #e0d7c6;
+        }
+
+        .screen { display: none; padding: 30px; animation: fadeIn 0.4s ease-in-out; }
+        .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hud {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: var(--primary);
+            color: white;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        /* Таймер стилі */
+        .timer-badge { 
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.8rem; 
+            font-weight: bold;
+            background: #fff;
+            color: var(--primary);
+            padding: 5px 20px;
+            border-radius: 10px;
+            min-width: 80px;
+            text-align: center;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .timer-low { color: var(--danger); animation: blink 0.5s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        .btn {
+            padding: 14px 35px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--secondary); transform: scale(1.05); }
+        .btn-next { background: var(--accent); color: #000; margin-top: 20px; display: none; width: 250px; }
+
+        .score-board { display: flex; gap: 20px; width: 100%; margin-bottom: 20px; }
+        .team-score { flex: 1; text-align: center; padding: 15px; border-radius: 15px; border-bottom: 5px solid #eee; transition: 0.3s; }
+        .t1-active { border-color: var(--team1) !important; background: #ebf5fb; transform: translateY(-5px); }
+        .t2-active { border-color: var(--team2) !important; background: #fef5e7; transform: translateY(-5px); }
+
+        .q-img-placeholder {
+            width: 100%;
+            height: 250px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            border: 2px dashed #ccc;
+            overflow: hidden;
+        }
+        .q-img-placeholder img { width: 100%; height: 100%; object-fit: cover; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+
+        .option-btn {
+            padding: 18px;
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+        .option-btn:hover:not(:disabled) { border-color: var(--secondary); background: #f9fdfa; }
+        .correct { background: #27ae60 !important; color: white; border-color: #2ecc71 !important; }
+        .wrong { background: #e74c3c !important; color: white; border-color: #c0392b !important; }
+
+        .progress-wrapper { width: 100%; background: #eee; height: 8px; border-radius: 4px; margin: 15px 0; position: relative; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: 0.3s; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="hud" style="display:none;" class="hud">
+        <div id="team-indicator" style="font-weight: bold; font-size: 1.1rem;">Кезек: 1-топ</div>
+        <div id="timer-display" class="timer-badge">30</div>
+    </div>
+
+    <div id="start-screen" class="screen active">
+        <h1 style="color: var(--primary); font-size: 2.5rem; margin-bottom: 10px;">Наурыз</h1>
+        <p style="margin-bottom: 30px; font-style: italic;">Интеллектуалды ойын!</p>
+        <div class="q-img-placeholder" style="border: none;">
+            <img src="https://www.zakon.kz/pbi/WEBP/2024-03-13/file-eab2d234-46d1-4b33-988f-5dc4fc6845ed/800x450.webp" alt="Наурыз">
+        </div>
+        <button class="btn btn-primary" onclick="startGame()">Ойынды бастау</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="score-board">
+            <div id="t1-score-box" class="team-score">
+                <div style="color: var(--team1); font-weight: bold;">1-топ</div>
+                <div id="score-t1" style="font-size: 1.8rem;">0</div>
+            </div>
+            <div id="t2-score-box" class="team-score">
+                <div style="color: var(--team2); font-weight: bold;">2-топ</div>
+                <div id="score-t2" style="font-size: 1.8rem;">0</div>
+            </div>
+        </div>
+
+        <div class="progress-wrapper"><div id="progress-bar" class="progress-fill"></div></div>
+
+        <div class="q-img-placeholder" id="image-slot">
+            <span style="color: #999;">[Сурет ұяшығы]</span>
+        </div>
+
+        <h3 id="question-text" style="margin-bottom: 25px; text-align: center; min-height: 50px;"></h3>
+        <div id="options" class="options-grid"></div>
+
+        <button id="next-btn" class="btn btn-next" onclick="goToNextQuestion()">Келесі сұрақ ➔</button>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h2 id="winner-msg" style="font-size: 2rem; color: var(--primary);"></h2>
+        <div id="stats" style="margin: 20px 0; font-size: 1.5rem; font-weight: bold;"></div>
+        <button class="btn btn-primary" onclick="location.reload()">Қайта бастау</button>
+    </div>
+</div>
+
+<audio id="kuyAudio" loop>
+    <source src="C:\Users\Алан\Downloads\www.ssvid.net--Relaxing-Dombyra-Music-Жанға-жайлы-домбыра-әуендері-Unknown-mp3.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+    const questions = [
+       { q: "1. Наурыз мерекесінің тарихи негізі қай құбылыспен тікелей байланысты?", a: ["Ай фазаларының өзгеруі", "Күн мен түннің теңелуі", "Жұлдыздардың қозғалысы", "Жел бағытының өзгеруі"], c: 1, img: "https://i.pinimg.com/originals/73/bf/dc/73bfdc0f6251c2ed912987d0e1889b2d.jpg?nii=t" },
+        { q: "2. Наурыз сөзі бастапқы мағынада нені білдіреді?", a: ["Табиғаттың оянуы", "Жаңа күн", "Көктем мерекесі", "Жаңа өмір"], c: 1, img: "https://img.freepik.com/premium-photo/tree-with-white-flowers-road_871710-7528.jpg?semt=ais_hybrid" },
+        { q: "3. Дәстүрлі түсінікте Наурыз көжедегі 7 саны нені білдіреді?", a: ["Табиғат элементтерінің үйлесімі", "Әлеуметтік топтарды", "Апта күндерін", "Аспан қабаттарын"], c: 0, img: "https://i.ytimg.com/vi/oRAbywOrXg4/maxresdefault.jpg" },
+        { q: "4. Наурыз мейрамында үйді тазалау дәстүрінің негізгі мақсаты қандай?", a: ["Гигиена сақтау", "Қонақ күтуге дайындық", "Рухани жаңару мен жамандықтан арылу", "Үйді безендіру"], c: 2, img: "https://i.pinimg.com/originals/32/28/a6/3228a6b13c047f6d6bef6ddbacb3661c.jpg" },
+        { q: "5. «Ұлыстың ұлы күні» тіркесіндегі “ұлыс” сөзі нені білдіреді?", a: ["Мемлекет", "Халық, ел", "Тайпа", "Жер"], c: 1, img: "https://kazpravda.kz/media/news/2025/01/16/27.jpg" },
+        { q: "6. Наурыз мейрамының түркі халықтарындағы ортақ ерекшелігі қандай?", a: ["Тек діни рәсімдерге негізделуі", "Табиғат циклімен байланысы", "Сауда мерекесі болуы", "Әскери дәстүрлермен байланысты"], c: 1, img: "https://img.freepik.com/premium-photo/four-seasons-tree-s-journey_1410957-36892.jpg" },
+        { q: "7. Наурыз мерекесінде тігілетін дәстүрлі баспана:", a: ["Үй", "Шатыр", "Киіз үй", "Кпе"], c: 2, img: "https://www.zakon.kz/pbi/WEBP/2024-03-22/file-3d3edbb5-a08e-4634-826d-57a24936d8ba/800x450.webp" },
+        { q: "8. Көрісу дәстүрі көбіне қай өңірде кең таралған?", a: ["Батыс Қазақстан", "Оңтүстік Қазақстан", "Шығыс Қазақстан", "Солтүстік Қазақстан"], c: 0, img: "https://i.ytimg.com/vi/_nRoH2zga_I/maxresdefault.jpg" },
+        { q: "9. Наурыз мерекесі ежелгі қай өркениеттермен байланысты?", a: ["Рим және грек", "Египет және үнді", "Қытай және жапон", "Түркі және парсы"], c: 3, img: "https://vesti.az/storage/news/2025/may/16/big/6826e0cbebb2a6826e0cbebb2b17473783796826e0cbebb286826e0cbebb29.webp" },
+        { q: "10. Наурыздағы бата берудің басты қызметі қандай?", a: ["Дәстүрді сақтау", "Жақсылық тілеу арқылы рухани қолдау көрсету", "Үлкендерді құрметтеу", "Әдет-ғұрыпты көрсету"], c: 1, img: "https://cdn.nur.kz/images/720/4ef03c5bf2cb4ee9.jpeg" },
+        { q: "11. Наурыз мейрамында табиғатқа қатысты қандай сенім болған?", a: ["Табиғат тоқтайды", "Табиғат өзгермейді", "Табиғат әлсірейді", "Табиғат жаңарып, күш алады"], c: 3, img: "https://img.freepik.com/premium-photo/early-spring-crocuses-through-melting-snow-winter-spring-background_1300186-2301.jpg?semt=ais_hybrid&w=740" },
+        { q: "12. Наурызда адамдардың татуласуының мәні неде?", a: ["Жаңа жылды таза көңілмен бастау", "Қоғамдық тәртіп сақтау", "Дәстүрді сақтау", "Қарым-қатынасты жақсарту"], c: 0, img: "https://img.freepik.com/premium-photo/diverse-group-hands-coming-together-unity-illuminated-by-sunlight-this-image-symbolizes-incl_871349-62335.jpg?semt=ais_hybrid&w=740" },
+        { q: "13. Наурыз мейрамында ұлттық ойындардың ұйымдастырылу себебі қандай?", a: ["Көңіл көтеру", "Жастарды тәрбиелеу", "Қоғамдық бірлікті нығайту", "Дәстүрді көрсету"], c: 2, img: "https://sputnik.kz/img/869/45/8694509_0:0:4569:3058_600x0_80_0_0_38bd9fba5dec2a50eea70e4a52cd30dc.jpg" },
+        { q: "14. Наурыздың астрономиялық негізі қай ғылым саласына жатады?", a: ["География", "Астрология", "Астрономия", "Физика"], c: 2, img: "https://img.freepik.com/premium-photo/crescent-moon-with-stars-sky_949828-25932.jpg?semt=ais_hybrid" },
+        { q: "15. Наурыз мерекесінің басты философиялық идеясы қандай?", a: ["Табиғатты бағындыру", "Табиғатпен үйлесімде өмір сүру", "Адам үстемдігі", "Өркениет дамуы"], c: 1, img: "https://img.freepik.com/premium-photo/stoicism_941466-4299.jpg?semt=ais_hybrid" },
+        { q: "16. Наурыз көжені ортақ дастарқанда ішу нені білдіреді?", a: ["Қонақжайлық", "Бірлік пен теңдік", "Дәстүр сақтау", "Асқа құрмет"], c: 1, img: "https://kz24.news/wp-content/uploads/2025/09/chto-takoe-kazahskiy-dastarhan.jpg" },
+        { q: "17. Наурызда берілетін сыйлықтардың мәні қандай?", a: ["Материалдық көмек", "Қарыз қайтару", "Байлық көрсету", "Қарым-қатынасты нығайту"], c: 3, img: "https://i.ytimg.com/vi/LO6nyOebG7Y/maxresdefault.jpg" },
+        { q: "18. Наурыз мейрамындағы «жаңару» ұғымы нені қамтиды?", a: ["Тек табиғатты", "Тек адамды", "Табиғат пен адамды бірге", "Тек қоғамды"], c: 2, img: "" },
+        { q: "19. Наурыз мерекесі неге “жыл басы” деп аталады?", a: ["Күнтізбелік жаңа жыл болғандықтан", "Табиғи циклдің басталуымен байланысты", "Мемлекеттік шешім бойынша", "Дәстүр бойынша ғана"], c: 1, img: "" },
+        { q: "20. Наурыз мейрамының қазіргі қоғамдағы маңызы қандай?", a: ["Тек дәстүр сақтау", "Туризмді дамыту", "Демалыс күні", "Мәдени бірегейлікті нығайту"], c: 2, img: "https://i.ytimg.com/vi/hJnOuA-PMTg/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGC0gXihlMA8=&rs=AOn4CLC5RbiUkuYeSLhZbCfmQrC-OIVRzg" }
+    ];
+    let currentQ = 0;
+    let score = { t1: 0, t2: 0 };
+    let currentTeam = 1;
+    let timeLeft = 30;
+    let timerInt;
+
+    function startGame() {
+        document.getElementById('hud').style.display = 'flex';
+        showScreen('game-screen');
+        loadQuestion();
+        document.getElementById('kuyAudio').play().catch(e => {});
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function resetTimer() {
+        clearInterval(timerInt);
+        timeLeft = 30;
+        const display = document.getElementById('timer-display');
+        display.innerText = timeLeft;
+        display.classList.remove('timer-low');
+
+        timerInt = setInterval(() => {
+            timeLeft--;
+            display.innerText = timeLeft;
+            
+            if(timeLeft <= 10) display.classList.add('timer-low');
+            
+            if(timeLeft <= 0) {
+                clearInterval(timerInt);
+                timeOut();
+            }
+        }, 1000);
+    }
+
+    function loadQuestion() {
+        if(currentQ >= questions.length) { endGame(); return; }
+        
+        resetTimer();
+        const q = questions[currentQ];
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('team-indicator').innerText = `Кезек: ${currentTeam}-топ`;
+        
+        document.getElementById('t1-score-box').classList.toggle('t1-active', currentTeam === 1);
+        document.getElementById('t2-score-box').classList.toggle('t2-active', currentTeam === 2);
+
+        document.getElementById('question-text').innerText = q.q;
+        
+        const imgSlot = document.getElementById('image-slot');
+        imgSlot.innerHTML = (q.img) ? `<img src="${q.img}" alt="q">` : `<span style="color:#aaa;">[Сурет ұяшығы]</span>`;
+
+        const optCont = document.getElementById('options');
+        optCont.innerHTML = '';
+        q.a.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(i);
+            optCont.appendChild(btn);
+        });
+
+        document.getElementById('progress-bar').style.width = (currentQ / questions.length * 100) + "%";
+    }
+
+    function checkAnswer(idx) {
+        clearInterval(timerInt);
+        const q = questions[currentQ];
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        if(idx === q.c) {
+            buttons[idx].classList.add('correct');
+            if(currentTeam === 1) score.t1 += 10; else score.t2 += 10;
+            document.getElementById('score-t1').innerText = score.t1;
+            document.getElementById('score-t2').innerText = score.t2;
+        } else {
+            if(idx !== null) buttons[idx].classList.add('wrong');
+            buttons[q.c].classList.add('correct');
+        }
+
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function timeOut() {
+        checkAnswer(null); // Уақыт біткенде қате деп есептеу
+    }
+
+    function goToNextQuestion() {
+        currentQ++;
+        currentTeam = (currentTeam === 1) ? 2 : 1;
+        loadQuestion();
+    }
+
+    function endGame() {
+        clearInterval(timerInt);
+        showScreen('result-screen');
+        document.getElementById('hud').style.display = 'none';
+        
+        let winMsg = score.t1 > score.t2 ? "🏆 1-топ жеңді!" : score.t2 > score.t1 ? "🏆 2-топ жеңді!" : "🤝 Тең түсті!";
+        document.getElementById('winner-msg').innerText = winMsg;
+        document.getElementById('stats').innerText = `${score.t1} - ${score.t2}`;
+    }
+</script>
+
+</body>
+</html>
